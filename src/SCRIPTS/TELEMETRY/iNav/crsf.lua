@@ -39,7 +39,7 @@ local function crsf(data)
       end
    end
    
-   if data.crsfReady < 5 then 
+   if data.crsfReady < config[36].v then 
     data.crsfReady = data.crsfReady + 1
     return 0 
    end

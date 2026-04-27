@@ -33,9 +33,15 @@ local function crsf(data)
 	    data.rssi = 0
 	    data.tpwr = 0
 	    data.telem = false
+	    data.crsfReady = 0
 	    return 0
 	 end
       end
+   end
+   
+   if data.crsfReady < 5 then 
+    data.crsfReady = data.crsfReady + 1
+    return 0 
    end
 
    if data.rssi == 99 then data.rssi = 100 end

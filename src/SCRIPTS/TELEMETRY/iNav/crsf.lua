@@ -13,11 +13,22 @@ data.fpv_id = getTelemetryId("Hdg")
 data.tpwr = 0
 data.rfmd = "--"
 data.fuelRaw = 0
+
 config[9].v = 0
 config[14].v = 0
 config[21].v = 2.5
 config[22].v = 0
 config[23].x = 1
+
+local counter = ... -- debug print
+counter.loop = 0 -- debug print
+setSerialBaudrate(115200) -- debug print
+
+local function debug_print_text(str) -- debug print
+	local full_str = string.format("Lo: %4d - %s", counter.loop, str)	 
+	print(full_str)
+	serialWrite(full_str .. "\r\n")
+end
 
 local function crsf(data)
    local vtest
@@ -33,15 +44,9 @@ local function crsf(data)
 	    data.rssi = 0
 	    data.tpwr = 0
 	    data.telem = false
-	    data.crsfReady = 0
 	    return 0
 	 end
       end
-   end
-   
-   if data.crsfReady < config[36].v then 
-    data.crsfReady = data.crsfReady + 1
-    return 0 
    end
 
    if data.rssi == 99 then data.rssi = 100 end
@@ -58,16 +63,39 @@ local function crsf(data)
 	data.heading = math.deg(getValue(data.hdg_id))
 	if data.fpv_id > -1 then data.fpv = getValue(data.fpv_id) * 10 end
 	]]
+
 	data.fuelRaw = data.fuel
 	if data.showFuel and config[23].v == 0 then
-		if data.fuelEst == -1 and data.cell > 0 then
-			if data.fuel < 25 and config[29].v - data.cell >= 0.2 then
-				data.fuelEst = math.max(math.min(1 - (data.cell - config[2].v + 0.1) / (config[29].v - config[2].v), 1), 0) * config[27].v
-			else
-				data.fuelEst = 0
+		if config[36].v == 0 and data.voltStab == false then data.voltStab = true end -- No voltstab timer set
+		if data.voltStab then
+			if data.fuelEst == -1 and data.cell > 0 then
+				if data.fuel < 25 and config[29].v - data.cell >= 0.2 then
+					data.fuelEst = math.max(math.min(1 - (data.cell - config[2].v + 0.1) / (config[29].v - config[2].v), 1), 0) * config[27].v
+					debug_print_text("fuelEst - Fuel Calculated") -- debug print
+				else
+					data.fuelEst = 0
+					debug_print_text("fuelEst - Batt Full") -- debug print
+				end
+			end
+			data.fuel = math.max(math.min(math.floor((1 - (data.fuel + data.fuelEst) / config[27].v) * 100 + 0.5), 100), 0)
+		else
+			data.fuel = -1 -- fuel set to -1 for obvious feedback that fuel is not yet calculated
+			if data.cell_prev ~= data.cell then
+				debug_print_text("Cell change")
+				if data.cell > data.cell_prev then -- voltage is higher, start a timer 
+					debug_print_text("fuelEst Reset") -- debug print
+					data.voltTimer = getTime()
+				end
+				data.cell_prev = data.cell
+			end
+			if data.voltTimer > 0 and ( data.voltTimer and (getTime() - data.voltTimer) >= (config[36].v * 100) ) then
+				-- if no voltage increase in the set time, the pack voltage reading is taken as stabilised. 				
+				debug_print_text("crsfStab")
+				data.voltStab = true
+				data.voltTimer = (getTime() - data.voltTimer)
+				debug_print_text(tostring(data.voltTimer)) -- debug print
 			end
 		end
-		data.fuel = math.max(math.min(math.floor((1 - (data.fuel + data.fuelEst) / config[27].v) * 100 + 0.5), 100), 0)
 	end
 	data.fm = getValue(data.fm_id)
 	data.modePrev = data.mode
@@ -124,7 +152,7 @@ local function crsf(data)
 			data.mode = 40004
 		end
 	end
-
+	counter.loop = counter.loop + 1	-- debug print
 	return 0
 end
 

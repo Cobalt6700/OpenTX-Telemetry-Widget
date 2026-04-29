@@ -1,6 +1,8 @@
 local data = ...
 
-data.crsfReady = 0
+data.voltTimer = 0
+data.voltStab = false
+data.cell_prev = 0.0
 data.armed = false
 data.startup = 1
 data.timerStart = 0

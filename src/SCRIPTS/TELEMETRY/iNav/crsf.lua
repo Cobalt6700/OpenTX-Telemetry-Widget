@@ -71,7 +71,7 @@ local function crsf(data)
 			if data.fuelEst == -1 and data.cell > 0 then
 				if data.fuel < 25 and config[29].v - data.cell >= 0.2 then
 					data.fuelEst = math.max(math.min(1 - (data.cell - config[2].v + 0.1) / (config[29].v - config[2].v), 1), 0) * config[27].v
-					debug_print_text("fuelEst - Fuel Calculated") -- debug print
+					debug_print_text(string.format("fuelEst - Fuel Calculated @ %d", data.fuelEst)) -- debug print
 				else
 					data.fuelEst = 0
 					debug_print_text("fuelEst - Batt Full") -- debug print
@@ -81,7 +81,7 @@ local function crsf(data)
 		else
 			data.fuel = -1 -- fuel set to -1 for obvious feedback that fuel is not yet calculated
 			if data.cell_prev ~= data.cell then
-				debug_print_text("Cell change")
+				debug_print_text(string.format("Cell change: %.2f -> %.2f", data.cell_prev, data.cell))
 				if data.cell > data.cell_prev then -- voltage is higher, start a timer 
 					debug_print_text("fuelEst Reset") -- debug print
 					data.voltTimer = getTime()
@@ -89,11 +89,10 @@ local function crsf(data)
 				data.cell_prev = data.cell
 			end
 			if data.voltTimer > 0 and ( data.voltTimer and (getTime() - data.voltTimer) >= (config[36].v * 100) ) then
-				-- if no voltage increase in the set time, the pack voltage reading is taken as stabilised. 				
-				debug_print_text("crsfStab")
+				-- if no voltage increase in the set time, the pack voltage reading is taken as stabilised. 
 				data.voltStab = true
 				data.voltTimer = (getTime() - data.voltTimer)
-				debug_print_text(tostring(data.voltTimer)) -- debug print
+				debug_print_text(string.format("voltStab - Time %.2f s", (data.voltTimer/100)))
 			end
 		end
 	end

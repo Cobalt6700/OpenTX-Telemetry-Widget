@@ -56,7 +56,7 @@ local function crsf(data)
 
 	data.fuelRaw = data.fuel
 	if data.showFuel and config[23].v == 0 then
-		if config[36].v == 0 and data.voltStab == false then data.voltStab = true end
+		if config[37].v == 0 and data.voltStab == false then data.voltStab = true end
 		if data.voltStab then
 			if data.fuelEst == -1 and data.cell > 0 then
 				if data.fuel < 25 and config[29].v - data.cell >= 0.2 then
@@ -74,7 +74,7 @@ local function crsf(data)
 				end
 				data.cell_prev = data.cell
 			end
-			if data.voltTimer > 0 and ( data.voltTimer and (getTime() - data.voltTimer) >= (config[36].v * 100) ) then
+			if data.voltTimer > 0 and ( data.voltTimer and (getTime() - data.voltTimer) >= (config[37].v * 100) ) then
 				-- if no voltage increase in the set time, the pack voltage reading is taken as stabilised. 
 				data.voltStab = true
 				data.voltTimer = (getTime() - data.voltTimer)

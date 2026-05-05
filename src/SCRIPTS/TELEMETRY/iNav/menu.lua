@@ -45,7 +45,8 @@ local function view(data, config, units, lang, event, gpsDegMin, getTelemetryId,
 		{ t = "Roll Scale",       l = 1 }, -- 33
 		{ t = "Playback Log",     l = config[34].l }, -- 34
 		{ t = "Greyscale Gfx",    l = {[0] = "On", "Off"} }, -- 35
-		{ t = "CRSF Fuel Delay",  m = 0, i = 0.5, a = "S" }, -- 36
+		{ t = "Horizon Mode",     l = {[0] = "Standard", "Fixed"} }, -- 36
+		{ t = "CRSF Fuel Delay",  m = 0, i = 0.5, a = "s" }, -- 37
 	}
 
 	-- Import language changes

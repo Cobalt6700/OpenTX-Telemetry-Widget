@@ -20,16 +20,6 @@ config[21].v = 2.5
 config[22].v = 0
 config[23].x = 1
 
-local counter = ... -- debug print
-counter.loop = 0 -- debug print
-setSerialBaudrate(115200) -- debug print
-
-local function debug_print_text(str) -- debug print
-	local full_str = string.format("Lo: %4d - %s", counter.loop, str)	 
-	print(full_str)
-	serialWrite(full_str .. "\r\n")
-end
-
 local function crsf(data)
    local vtest
    vtest =  getValue(data.rssi_id)
@@ -66,24 +56,20 @@ local function crsf(data)
 
 	data.fuelRaw = data.fuel
 	if data.showFuel and config[23].v == 0 then
-		if config[36].v == 0 and data.voltStab == false then data.voltStab = true end -- No voltstab timer set
+		if config[36].v == 0 and data.voltStab == false then data.voltStab = true end
 		if data.voltStab then
 			if data.fuelEst == -1 and data.cell > 0 then
 				if data.fuel < 25 and config[29].v - data.cell >= 0.2 then
-					data.fuelEst = math.max(math.min(1 - (data.cell - config[2].v + 0.1) / (config[29].v - config[2].v), 1), 0) * config[27].v
-					debug_print_text(string.format("fuelEst - Fuel Calculated @ %d", data.fuelEst)) -- debug print
+					data.fuelEst = math.max(math.min(1 - (data.cell - config[2].v + 0.1) / (config[29].v - config[2].v), 1), 0) * config[27].v				
 				else
 					data.fuelEst = 0
-					debug_print_text("fuelEst - Batt Full") -- debug print
 				end
 			end
 			data.fuel = math.max(math.min(math.floor((1 - (data.fuel + data.fuelEst) / config[27].v) * 100 + 0.5), 100), 0)
 		else
 			data.fuel = -1 -- fuel set to -1 for obvious feedback that fuel is not yet calculated
 			if data.cell_prev ~= data.cell then
-				debug_print_text(string.format("Cell change: %.2f -> %.2f", data.cell_prev, data.cell))
-				if data.cell > data.cell_prev then -- voltage is higher, start a timer 
-					debug_print_text("fuelEst Reset") -- debug print
+				if data.cell > data.cell_prev then
 					data.voltTimer = getTime()
 				end
 				data.cell_prev = data.cell
@@ -92,7 +78,6 @@ local function crsf(data)
 				-- if no voltage increase in the set time, the pack voltage reading is taken as stabilised. 
 				data.voltStab = true
 				data.voltTimer = (getTime() - data.voltTimer)
-				debug_print_text(string.format("voltStab - Time %.2f s", (data.voltTimer/100)))
 			end
 		end
 	end
@@ -151,7 +136,7 @@ local function crsf(data)
 			data.mode = 40004
 		end
 	end
-	counter.loop = counter.loop + 1	-- debug print
+
 	return 0
 end
 
